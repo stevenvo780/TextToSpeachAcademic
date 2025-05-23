@@ -1,0 +1,7 @@
+edge-tts
+flask
+pydub
+PyMuPDF
+werkzeug
+requests
+python-dotenv
