@@ -8,7 +8,7 @@ export default function Controls({
   canPlay, canPause, canResume, canPrev, canNext, canExport
 }) {
   return (
-    <div className="d-flex flex-column gap-2">
+    <div className="d-flex flex-column gap-2 controls-row">
       {/* Botón principal de reproducir */}
       <Button 
         variant="primary" 
@@ -16,11 +16,11 @@ export default function Controls({
         className="w-100" 
         onClick={onPlay} 
         disabled={!canPlay}
+        style={{minHeight: 44, height: 44}}
       >
         <i className="bi bi-play-fill me-2"></i>
         Reproducir
       </Button>
-      
       {/* Controles de pausa/resume/cancel */}
       <Row className="g-2">
         <Col>
@@ -30,6 +30,7 @@ export default function Controls({
             className="w-100" 
             onClick={onPause} 
             disabled={!canPause}
+            style={{minHeight: 44, height: 44}}
           >
             <i className="bi bi-pause-fill me-1"></i>
             Pausar
@@ -42,6 +43,7 @@ export default function Controls({
             className="w-100" 
             onClick={onResume} 
             disabled={!canResume}
+            style={{minHeight: 44, height: 44}}
           >
             <i className="bi bi-play-fill me-1"></i>
             Reanudar
@@ -53,13 +55,13 @@ export default function Controls({
             size="sm"
             className="w-100" 
             onClick={onCancel}
+            style={{minHeight: 44, height: 44}}
           >
             <i className="bi bi-x-circle me-1"></i>
             Cancelar
           </Button>
         </Col>
       </Row>
-      
       {/* Controles de navegación */}
       <Row className="g-2">
         <Col>
@@ -69,6 +71,7 @@ export default function Controls({
             className="w-100" 
             onClick={onPrev} 
             disabled={!canPrev}
+            style={{minHeight: 44, height: 44}}
           >
             <i className="bi bi-skip-start-fill me-1"></i>
             Anterior
@@ -81,19 +84,20 @@ export default function Controls({
             className="w-100" 
             onClick={onNext} 
             disabled={!canNext}
+            style={{minHeight: 44, height: 44}}
           >
             <i className="bi bi-skip-end-fill me-1"></i>
             Siguiente
           </Button>
         </Col>
       </Row>
-      
       {/* Botón de exportar */}
       <Button 
         variant="outline-success" 
         className="w-100 mt-2" 
         onClick={onExport} 
         disabled={!canExport}
+        style={{minHeight: 44, height: 44}}
       >
         <i className="bi bi-download me-2"></i>
         Exportar Audio MP3

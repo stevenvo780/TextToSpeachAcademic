@@ -7,9 +7,12 @@ import Button from 'react-bootstrap/Button';
 import Form from 'react-bootstrap/Form';
 import MarkdownEditor from './components/MarkdownEditor.jsx';
 import ParagraphView from './components/ParagraphView.jsx';
-import Controls from './components/Controls.jsx';
 import StatusBar from './components/StatusBar.jsx';
 import { AudioPlayer } from './components/AudioPlayer.js';
+import OverlayTrigger from 'react-bootstrap/OverlayTrigger';
+import Tooltip from 'react-bootstrap/Tooltip';
+import { BsInfoCircle } from 'react-icons/bs';
+import Navbar from 'react-bootstrap/Navbar';
 import './App.css';
 
 function App() {
@@ -32,6 +35,7 @@ function App() {
   const audioRef = useRef(null);
   const audioPlayerRef = useRef(null);
   const audioContainerRef = useRef(null);
+
 
   // Guardar texto en localStorage cuando cambie
   useEffect(() => {
@@ -362,126 +366,190 @@ function App() {
     }
   };
 
+  const getStatusColor = () => {
+    if (status.toLowerCase().includes('error')) return 'bg-danger';
+    if (status.toLowerCase().includes('listo') || status.toLowerCase().includes('completada') || status.toLowerCase().includes('exitosa')) return 'bg-success';
+    if (status.toLowerCase().includes('procesando') || status.toLowerCase().includes('cargando')) return 'bg-warning';
+    return 'bg-secondary';
+  };
+
+  // Renderizado
   return (
-    <Container fluid className="bg-light min-vh-100 py-4">
-      <h2 className="text-center mb-4">Lector de Textos IA</h2>
-      <Row>
-        {/* Barra lateral de control */}
-        <Col xs={12} lg={4} className="mb-4 mb-lg-0">
-          <Card className="h-100">
-            <Card.Body>
-              <h4 className="mb-3 border-bottom pb-2">Control de Lectura</h4>
-              
-              <Button 
-                variant="secondary" 
-                className="w-100 mb-3" 
-                onClick={toggleMode}
-              >
-                {mode === 'editor' ? 'Cambiar a modo lectura' : 'Cambiar a modo edición'}
-              </Button>
-              
-              <Controls
-                onPlay={handlePlay}
-                onPause={handlePause}
-                onResume={handleResume}
-                onCancel={handleCancel}
-                onPrev={handlePrev}
-                onNext={handleNext}
-                onExport={handleExport}
-                canPlay={paragraphs.length > 0 && !isPlaying}
-                canPause={isPlaying && !isPaused}
-                canResume={isPlaying && isPaused}
-                canPrev={activeIdx > 0}
-                canNext={activeIdx < paragraphs.length - 1}
-                canExport={paragraphs.length > 0}
-              />
-              
-              <Form.Group className="my-3" controlId="speedSelector">
-                <Form.Label>Velocidad de reproducción</Form.Label>
-                <Form.Select 
-                  value={speed} 
-                  onChange={e => handleSpeedChange(e.target.value)}
-                >
-                  <option value="0.75">0.75x</option>
-                  <option value="1">1x</option>
-                  <option value="1.25">1.25x</option>
-                  <option value="1.5">1.5x</option>
-                  <option value="1.75">1.75x</option>
-                  <option value="2">2x</option>
-                </Form.Select>
-              </Form.Group>
-              
-              <div className="shortcut-info mb-3">
-                <h6>Atajos de teclado:</h6>
-                <ul className="small mb-0">
-                  <li><kbd>Espacio</kbd> - Pausar/Reanudar</li>
-                  <li><kbd>←</kbd><kbd>→</kbd> - Anterior/Siguiente párrafo</li>
-                </ul>
-              </div>
-              
-              <div ref={audioContainerRef} className="mb-3"></div>
-              
-              <StatusBar status={status} />
-            </Card.Body>
-          </Card>
-          
-          {/* Card para cargar PDF */}
-          <Card className="mt-3">
-            <Card.Body>
-              <Form>
-                <Form.Group controlId="pdfInput">
-                  <Form.Label>Cargar PDF</Form.Label>
-                  <Form.Control 
-                    type="file" 
-                    accept="application/pdf" 
-                    aria-label="Cargar PDF" 
-                    onChange={handlePdfUpload}
-                  />
-                </Form.Group>
-              </Form>
-              <div className="text-secondary mt-2" id="pdfStatus"></div>
-            </Card.Body>
-          </Card>
-        </Col>
-        
-        {/* Área principal: editor o lector */}
-        <Col xs={12} lg={8}>
-          <Card className="h-100">
-            <Card.Body>
-              {mode === 'editor' ? (
-                <div>
-                  <h4 className="mb-3">Editor de Texto</h4>
-                  <MarkdownEditor value={text} onChange={setText} />
-                  <div className="d-flex justify-content-end">
-                    <Button 
-                      variant="primary" 
-                      className="mt-2 px-4" 
-                      onClick={handleSplit}
-                    >
-                      Dividir en párrafos y leer
+    <>
+      <Navbar bg="dark" variant="dark" expand="lg" className="mb-4">
+        <Container>
+          <Navbar.Brand href="#home">Lector de Textos IA</Navbar.Brand>
+        </Container>
+      </Navbar>
+      <Container fluid className="min-vh-100 py-4 pt-0">
+        <Row>
+          {/* Barra lateral de control */}
+          <Col xs={12} lg={4} className="mb-4 mb-lg-0">
+            <Card className="h-100">
+              <Card.Body className="d-flex flex-column">
+                <div className="d-flex align-items-center justify-content-between mb-3 border-bottom pb-2">
+                  <h4 className="mb-0">Control de Lectura</h4>
+                  <OverlayTrigger
+                    placement="right"
+                    overlay={
+                      <Tooltip id="shortcut-tooltip" className="shortcut-tooltip">
+                        <div className="shortcut-info p-2">
+                          <h6>Atajos de teclado:</h6>
+                          <ul className="small mb-0">
+                            <li><kbd>Espacio</kbd> - Pausar/Reanudar</li>
+                            <li><kbd>←</kbd><kbd>→</kbd> - Anterior/Siguiente párrafo</li>
+                          </ul>
+                        </div>
+                      </Tooltip>
+                    }
+                  >
+                    <Button variant="outline-info" size="sm" className="ms-2 p-1 d-flex align-items-center" style={{ borderRadius: '50%' }}>
+                      <BsInfoCircle size={20} />
                     </Button>
+                  </OverlayTrigger>
+                </div>
+
+                <Button
+                  variant="secondary"
+                  className="w-100 mb-3"
+                  onClick={toggleMode}
+                >
+                  {mode === 'editor' ? 'Cambiar a modo lectura' : 'Cambiar a modo edición'}
+                </Button>
+
+                {/* Grid para Velocidad y Reproducir */}
+                <div className="d-grid mb-2" style={{ gridTemplateColumns: '3fr 9fr', gap: '0.5rem' }}>
+                  <Form.Group controlId="speedSelector">
+                    <Form.Label visuallyHidden>Velocidad</Form.Label>
+                    <Form.Select
+                      value={speed}
+                      onChange={e => handleSpeedChange(e.target.value)}
+                      size="sm"
+                      className="h-100"
+                    >
+                      <option value="0.75">0.75x</option>
+                      <option value="1">1x</option>
+                      <option value="1.25">1.25x</option>
+                      <option value="1.5">1.5x</option>
+                      <option value="1.75">1.75x</option>
+                      <option value="2">2x</option>
+                    </Form.Select>
+                  </Form.Group>
+                  <Button
+                    variant="primary"
+                    className="w-100"
+                    onClick={handlePlay}
+                    disabled={isPlaying && mode === 'lector'} // Deshabilitar si ya está reproduciendo en modo lector
+                  >
+                    <i className="bi bi-play-fill me-2"></i>
+                    {paragraphs.length > 0 && mode === 'lector' ? 'Reproducir' : 'Dividir y Reproducir'}
+                  </Button>
+                </div>
+
+                {/* Grid para Pausa, Reanudar, Cancelar */}
+                <div className="d-grid mb-2" style={{ gridTemplateColumns: '1fr 1fr 1fr', gap: '0.5rem' }}>
+                  <Button variant="warning" onClick={handlePause} disabled={!isPlaying || isPaused} className="w-100">
+                    <i className="bi bi-pause-fill me-1"></i>Pausar
+                  </Button>
+                  <Button variant="success" onClick={handleResume} disabled={!isPlaying || !isPaused} className="w-100">
+                    <i className="bi bi-play-fill me-1"></i>Reanudar
+                  </Button>
+                  <Button variant="danger" onClick={handleCancel} disabled={!isPlaying} className="w-100">
+                    <i className="bi bi-x-circle me-1"></i>Cancelar
+                  </Button>
+                </div>
+
+                {/* Grid para Anterior y Siguiente */}
+                <div className="d-grid mb-3" style={{ gridTemplateColumns: '1fr 1fr', gap: '0.5rem' }}>
+                  <Button variant="outline-primary" onClick={handlePrev} disabled={activeIdx <= 0 || !isPlaying} className="w-100">
+                    <i className="bi bi-skip-start-fill me-1"></i>Anterior
+                  </Button>
+                  <Button variant="outline-primary" onClick={handleNext} disabled={activeIdx >= paragraphs.length - 1 || !isPlaying} className="w-100">
+                    <i className="bi bi-skip-end-fill me-1"></i>Siguiente
+                  </Button>
+                </div>
+                
+                <Button
+                  variant="outline-success"
+                  className="w-100 mb-3"
+                  onClick={handleExport}
+                  disabled={!audios.length} // Habilitar si hay audios generados
+                >
+                  <i className="bi bi-download me-2"></i>
+                  Exportar Audio MP3
+                </Button>
+
+                <div ref={audioContainerRef} className="mb-auto"></div> {/* mb-auto para empujar lo siguiente hacia abajo */}
+                
+                {/* Nueva ubicación para importar PDF y estado visual */}
+                <div className="mt-auto border-top pt-2">
+                  <Form.Group controlId="pdfInput" className="mb-2">
+                    <Form.Label visuallyHidden>Importar PDF</Form.Label>
+                    <Form.Control
+                      type="file"
+                      accept="application/pdf"
+                      aria-label="Cargar PDF"
+                      onChange={handlePdfUpload}
+                      size="sm"
+                    />
+                  </Form.Group>
+                  <div className="d-flex align-items-center">
+                    <div 
+                      style={{ 
+                        width: '20px', 
+                        height: '20px', 
+                        borderRadius: '50%', 
+                        marginRight: '10px',
+                        transition: 'background-color 0.3s ease'
+                      }} 
+                      className={getStatusColor()}
+                      title={status} // Mostrar estado como tooltip
+                    ></div>
+                    <span className="small text-muted">{status}</span> {/* Mantener el texto del estado por ahora */}
                   </div>
                 </div>
-              ) : (
-                <div>
-                  <h4 className="mb-3">
-                    Lector de Párrafos 
-                    <span className="text-muted small">
-                      ({activeIdx + 1} de {paragraphs.length})
-                    </span>
-                  </h4>
-                  <ParagraphView 
-                    parts={paragraphs} 
-                    activeIdx={activeIdx} 
-                    onSelect={handleSelectParagraph} 
-                  />
-                </div>
-              )}
-            </Card.Body>
-          </Card>
-        </Col>
-      </Row>
-    </Container>
+              </Card.Body>
+            </Card>
+          </Col>
+          {/* Área principal: editor o lector */}
+          <Col xs={12} lg={8}>
+            <Card className="h-100">
+              <Card.Body>
+                {mode === 'editor' ? (
+                  <div>
+                    <h4 className="mb-3">Editor de Texto</h4>
+                    <MarkdownEditor value={text} onChange={setText} />
+                    <div className="d-flex justify-content-end">
+                      <Button 
+                        variant="primary" 
+                        className="mt-2 px-4" 
+                        onClick={handlePlay}
+                      >
+                        Dividir y Reproducir
+                      </Button>
+                    </div>
+                  </div>
+                ) : (
+                  <div>
+                    <h4 className="mb-3">
+                      Lector de Párrafos 
+                      <span className="text-muted small">
+                        ({activeIdx + 1} de {paragraphs.length})
+                      </span>
+                    </h4>
+                    <ParagraphView 
+                      parts={paragraphs} 
+                      activeIdx={activeIdx} 
+                      onSelect={handleSelectParagraph} 
+                    />
+                  </div>
+                )}
+              </Card.Body>
+            </Card>
+          </Col>
+        </Row>
+      </Container>
+    </>
   );
 }
 
