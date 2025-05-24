@@ -98,7 +98,7 @@ def before_request():
 
 @app.route('/')
 def index():
-    return render_template('index.html')
+    return jsonify({'status': 'Backend funcionando correctamente', 'version': '1.0'})
 
 @app.route('/split', methods=['POST'])
 def split():
