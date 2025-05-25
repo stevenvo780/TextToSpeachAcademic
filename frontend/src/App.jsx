@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import Container from 'react-bootstrap/Container';
 import Row from 'react-bootstrap/Row';
 import Col from 'react-bootstrap/Col';
@@ -7,14 +7,22 @@ import Button from 'react-bootstrap/Button';
 import Form from 'react-bootstrap/Form';
 import MarkdownEditor from './components/MarkdownEditor.jsx';
 import ParagraphView from './components/ParagraphView.jsx';
-import StatusBar from './components/StatusBar.jsx';
 import NavbarControls from './components/NavbarControls.jsx';
 import ConversationHistory from './components/ConversationHistory.jsx';
 import { AudioPlayer } from './components/AudioPlayer.js';
+import { useNotifications } from './hooks/useNotifications.js';
+import { NotificationContainer } from './components/NotificationSystem.jsx';
 import './App.css';
+
+// Configuración de la URL del backend desde variables de entorno
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
 
 function App() {
   console.log('App se está montando');
+  
+  // Sistema de notificaciones
+  const { notifications, showError, showSuccess, /* showWarning, showInfo, */ removeNotification } = useNotifications();
+  
   // Estado global del lector
   const [text, setText] = useState(localStorage.getItem('lector_text') || '');
   const [paragraphs, setParagraphs] = useState([]);
@@ -108,13 +116,8 @@ function App() {
     setShowHistory(false);
   };
 
-  // Función para mostrar errores
-  const showError = (msg) => {
-    alert(msg);
-  };
-
   // Reproducir audio en índice específico
-  const playAudioAtIndex = async (idx, audioUrls) => {
+  const playAudioAtIndex = useCallback(async (idx, audioUrls) => {
     if (cancelRequested || idx >= audioUrls.length) return;
     
     setActiveIdx(idx);
@@ -137,43 +140,43 @@ function App() {
     audioPlayerRef.current.setSource(url);
     audioPlayerRef.current.play();
     setStatus(`Reproduciendo parte ${idx + 1} de ${paragraphs.length}`);
-  };
+  }, [cancelRequested, paragraphs.length]);
 
   // Controles de reproducción
-  const handlePause = () => {
+  const handlePause = useCallback(() => {
     if (audioPlayerRef.current && !audioPlayerRef.current.isPaused()) {
       audioPlayerRef.current.pause();
       setIsPaused(true);
       setStatus('Reproducción pausada');
     }
-  };
+  }, []);
 
-  const handleResume = () => {
+  const handleResume = useCallback(() => {
     if (audioPlayerRef.current && isPaused) {
       audioPlayerRef.current.play();
       setIsPaused(false);
       setStatus(`Reproduciendo parte ${activeIdx + 1} de ${paragraphs.length}`);
     }
-  };
+  }, [isPaused, activeIdx, paragraphs.length]);
 
   // Navegación
-  const handlePrev = () => {
+  const handlePrev = useCallback(() => {
     if (activeIdx > 0) {
       const newIdx = activeIdx - 1;
       if (audioRef.current) audioRef.current.pause();
       setActiveIdx(newIdx);
       if (audios.length) playAudioAtIndex(newIdx, audios);
     }
-  };
+  }, [activeIdx, audios, playAudioAtIndex]);
 
-  const handleNext = () => {
+  const handleNext = useCallback(() => {
     if (activeIdx < paragraphs.length - 1) {
       const newIdx = activeIdx + 1;
       if (audioRef.current) audioRef.current.pause();
       setActiveIdx(newIdx);
       if (audios.length) playAudioAtIndex(newIdx, audios);
     }
-  };
+  }, [activeIdx, paragraphs.length, audios, playAudioAtIndex]);
 
   // Atajos de teclado
   useEffect(() => {
@@ -220,7 +223,7 @@ function App() {
     setStatus('Procesando texto...');
     
     try {
-      const response = await fetch('http://localhost:5000/smart_split', {
+      const response = await fetch(`${API_URL}/smart_split`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ text: text.trim() })
@@ -235,6 +238,7 @@ function App() {
         setActiveIdx(0);
         setStatus(`Texto dividido en ${data.parts.length} párrafos`);
         setMode('lector');
+        showSuccess(`Texto dividido en ${data.parts.length} párrafos`);
         
         // Guardar en historial
         saveConversationToHistory(text, data.parts);
@@ -268,13 +272,13 @@ function App() {
 
     // Limpiar caché anterior
     try {
-      await fetch('http://localhost:5000/clear_cache', { method: 'POST' });
+      await fetch(`${API_URL}/clear_cache`, { method: 'POST' });
     } catch (error) {
       console.warn('Error clearing cache:', error);
     }
 
     try {
-      const response = await fetch('http://localhost:5000/tts', {
+      const response = await fetch(`${API_URL}/tts`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ text })
@@ -308,7 +312,7 @@ function App() {
         // Eliminar audio actual del servidor
         if (activeIdx < audios.length) {
           try {
-            await fetch('http://localhost:5000/delete_audio', {
+            await fetch(`${API_URL}/delete_audio`, {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify({ url: audios[activeIdx] })
@@ -363,13 +367,13 @@ function App() {
   };
 
   // Navegación de párrafos
-  const handleSelectParagraph = (idx) => {
+  const handleSelectParagraph = useCallback((idx) => {
     if (idx >= 0 && idx < paragraphs.length && audios.length && idx < audios.length) {
       if (audioRef.current) audioRef.current.pause();
       setActiveIdx(idx);
       playAudioAtIndex(idx, audios);
     }
-  };
+  }, [paragraphs.length, audios, playAudioAtIndex]);
 
   // Cambio de velocidad
   const handleSpeedChange = (newSpeed) => {
@@ -384,15 +388,16 @@ function App() {
     setStatus('Exportando audio...');
     
     try {
-      const response = await fetch('http://localhost:5000/export_all', { method: 'POST' });
+      const response = await fetch(`${API_URL}/export_all`, { method: 'POST' });
       const data = await response.json();
       
       if (data.export_url) {
         const a = document.createElement('a');
-        a.href = data.export_url;
+        a.href = `${API_URL}${data.export_url}`;
         a.download = 'lectura_completa.mp3';
         a.click();
         setStatus('Audio exportado con éxito');
+        showSuccess('Audio exportado con éxito');
       } else {
         setStatus('Error al exportar el audio');
         showError('No se pudo exportar el audio.');
@@ -415,7 +420,7 @@ function App() {
     formData.append('file', file);
 
     try {
-      const response = await fetch('http://localhost:5000/upload_pdf', {
+      const response = await fetch(`${API_URL}/upload_pdf`, {
         method: 'POST',
         body: formData
       });
@@ -425,6 +430,7 @@ function App() {
       if (data.text) {
         setText(data.text);
         setStatus('PDF cargado exitosamente');
+        showSuccess('PDF cargado exitosamente');
       } else {
         showError('No se pudo extraer texto del PDF');
         setStatus('Error al cargar PDF');
@@ -528,6 +534,12 @@ function App() {
         show={showHistory}
         onHide={handleHideHistory}
         onLoadConversation={loadConversationFromHistory}
+      />
+
+      {/* Sistema de notificaciones */}
+      <NotificationContainer 
+        notifications={notifications}
+        onRemove={removeNotification}
       />
     </>
   );
