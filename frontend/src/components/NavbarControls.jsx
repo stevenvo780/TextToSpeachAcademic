@@ -31,26 +31,34 @@ export default function NavbarControls({
   onPlay,
   onPause,
   onResume,
-  onCancel,
   onPrev,
   onNext,
   onExport,
   onSpeedChange,
   onToggleMode,
   onShowHistory,
-  onPdfUpload
+  onPdfUpload,
+  onNewConversation
 }) {
   const fileInputRef = useRef(null);
   
   const handlePdfClick = () => {
     fileInputRef.current?.click();
   };
-  const canPlay = !isPlaying;
-  const canPause = isPlaying && !isPaused;
-  const canResume = isPlaying && isPaused;
   const canPrev = activeIdx > 0 && isPlaying;
   const canNext = activeIdx < paragraphs.length - 1 && isPlaying;
   const canExport = audios.length > 0;
+
+  // Función para manejar el botón de play/pause combinado
+  const handlePlayPause = () => {
+    if (!isPlaying) {
+      onPlay();
+    } else if (isPaused) {
+      onResume();
+    } else {
+      onPause();
+    }
+  };
 
   const renderTooltipButton = (icon, onClick, disabled, variant, tooltip, size = 18) => (
     <OverlayTrigger
@@ -104,40 +112,14 @@ export default function NavbarControls({
 
           {/* Controles de reproducción */}
           <div className="d-flex align-items-center me-2 me-md-3 flex-wrap">
-            {/* Botón de reproducir */}
+            {/* Botón de reproducir/pausar combinado */}
             {renderTooltipButton(
-              <BsPlay />,
-              onPlay,
-              !canPlay,
-              "success",
-              paragraphs.length > 0 && mode === 'lector' ? 'Reproducir' : 'Dividir y Reproducir'
-            )}
-
-            {/* Botón de pausa */}
-            {renderTooltipButton(
-              <BsPause />,
-              onPause,
-              !canPause,
-              "warning",
-              "Pausar"
-            )}
-
-            {/* Botón de reanudar */}
-            {renderTooltipButton(
-              <BsPlay />,
-              onResume,
-              !canResume,
-              "info",
-              "Reanudar"
-            )}
-
-            {/* Botón de cancelar */}
-            {renderTooltipButton(
-              <BsStop />,
-              onCancel,
-              !isPlaying,
-              "danger",
-              "Cancelar"
+              isPlaying && !isPaused ? <BsPause /> : <BsPlay />,
+              handlePlayPause,
+              false,
+              isPlaying && !isPaused ? "warning" : "success",
+              isPlaying && !isPaused ? "Pausar" : 
+                (paragraphs.length > 0 && mode === 'lector' ? 'Reproducir' : 'Dividir y Reproducir')
             )}
 
             {/* Separador */}
@@ -235,6 +217,26 @@ export default function NavbarControls({
               style={{ display: 'none' }}
               onChange={onPdfUpload}
             />
+
+            {/* Botón de nueva conversación */}
+            <OverlayTrigger
+              placement="bottom"
+              overlay={<Tooltip id="tooltip-new">Nueva conversación</Tooltip>}
+            >
+              <Button
+                variant="outline-success"
+                size="sm"
+                onClick={onNewConversation}
+                className="me-1 me-md-2 d-flex align-items-center justify-content-center"
+                style={{ 
+                  width: '36px', 
+                  height: '36px',
+                  borderRadius: '8px'
+                }}
+              >
+                <BsPlus size={20} />
+              </Button>
+            </OverlayTrigger>
 
             {/* Botón de historial */}
             <OverlayTrigger

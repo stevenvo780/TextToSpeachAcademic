@@ -1,5 +1,92 @@
 /* Estilos principales para Lector de Textos IA */
 
+/* Navbar flotante */
+.navbar {
+    position: fixed !important;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 1050;
+    background: rgba(33, 37, 41, 0.95) !important;
+    backdrop-filter: blur(10px);
+    box-shadow: 0 2px 20px rgba(0, 0, 0, 0.3);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* Ajustar el contenido principal para compensar la navbar fija */
+.container-fluid.py-4 {
+    padding-top: 90px !important;
+}
+
+/* Navbar responsiva - mantener horizontal en pantallas pequeñas */
+.navbar-nav {
+    flex-direction: row !important;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+/* Evitar colapso vertical - forzar navbar siempre expandida */
+.navbar-expand-xl .navbar-nav {
+    flex-direction: row !important;
+}
+
+.navbar-toggler {
+    display: none !important;
+}
+
+.navbar-collapse {
+    display: flex !important;
+    flex-basis: auto !important;
+}
+
+@media (max-width: 768px) {
+    .navbar-nav {
+        justify-content: flex-end;
+        width: 100%;
+    }
+    
+    /* Reducir tamaño de botones en móviles */
+    .navbar .btn {
+        width: 35px !important;
+        height: 35px !important;
+        margin-right: 0.25rem !important;
+    }
+    
+    /* Ocultar texto del selector de velocidad en móviles */
+    .navbar .form-select {
+        width: 60px !important;
+        font-size: 0.8rem;
+    }
+    
+    /* Ajustar espaciado */
+    .navbar .d-flex {
+        gap: 0.25rem;
+    }
+    
+    /* Reducir separadores */
+    .navbar .vr {
+        height: 25px !important;
+        margin: 0 0.25rem !important;
+    }
+    
+    /* Ocultar indicador de progreso en móviles muy pequeños */
+    @media (max-width: 576px) {
+        .navbar .text-light.small {
+            display: none !important;
+        }
+    }
+}
+
+/* Evitar colapso vertical de la navbar */
+.navbar-collapse {
+    flex-basis: auto !important;
+}
+
+.navbar-toggler {
+    display: none !important;
+}
+
 body {
     background: linear-gradient(135deg, #181818 0%, #232526 100%) !important;
     color: #e0e0e0;

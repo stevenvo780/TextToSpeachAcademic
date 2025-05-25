@@ -70,6 +70,35 @@ function App() {
     setShowHistory(false);
   };
 
+  // Función para crear nueva conversación
+  const handleNewConversation = () => {
+    // Guardar conversación actual si hay contenido
+    if (text.trim() && paragraphs.length > 0) {
+      saveConversationToHistory(text, paragraphs);
+    }
+    
+    // Limpiar el estado para nueva conversación
+    setText('');
+    setParagraphs([]);
+    setActiveIdx(0);
+    setIsPlaying(false);
+    setIsPaused(false);
+    setAudios([]);
+    setCancelRequested(false);
+    setMode('editor');
+    setStatus('Nueva conversación iniciada');
+    
+    // Limpiar audio container
+    if (audioContainerRef.current) {
+      audioContainerRef.current.innerHTML = '';
+    }
+    
+    if (audioRef.current) {
+      audioRef.current.pause();
+      audioRef.current = null;
+    }
+  };
+
   // Función para mostrar/ocultar historial
   const handleShowHistory = () => {
     setShowHistory(true);
@@ -436,6 +465,7 @@ function App() {
         onToggleMode={toggleMode}
         onShowHistory={handleShowHistory}
         onPdfUpload={handlePdfUpload}
+        onNewConversation={handleNewConversation}
       />
       
       <Container fluid className="min-vh-100 py-4 pt-0">
@@ -453,8 +483,8 @@ function App() {
                   <div>
                     <h4 className="mb-3">
                       Lector de Párrafos 
-                      <span className="text-muted small">
-                        ({activeIdx + 1} de {paragraphs.length})
+                      <span className="small">
+                        {" "}({activeIdx + 1} de {paragraphs.length})
                       </span>
                     </h4>
                     <ParagraphView 
