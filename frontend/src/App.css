@@ -354,7 +354,51 @@ h2.text-center {
     background-color: #525457;
 }
 
-/* Responsividad mejorada */
+/* Estilos para el historial de conversaciones */
+.conversation-item {
+  transition: background-color 0.2s ease;
+}
+
+.conversation-item:hover {
+  background-color: var(--bs-light) !important;
+}
+
+.conversation-preview h6 {
+  font-size: 0.95rem;
+  line-height: 1.3;
+}
+
+.conversation-preview p {
+  font-size: 0.85rem;
+  line-height: 1.4;
+}
+
+/* Estilos para la navbar de controles */
+.navbar-controls .btn {
+  transition: all 0.2s ease;
+}
+
+.navbar-controls .btn:hover {
+  transform: translateY(-1px);
+}
+
+.navbar-controls .vr {
+  opacity: 0.3;
+}
+
+/* Mejoras para el layout responsivo */
+@media (max-width: 768px) {
+  .navbar-controls .d-flex {
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+  
+  .navbar-controls .btn {
+    width: 36px;
+    height: 36px;
+  }
+}
+
 @media (max-width: 992px) {
     .card-body {
         padding: 1rem;
@@ -370,13 +414,54 @@ h2.text-center {
     }
 }
 
-@media (max-width: 768px) {
-    .shortcut-info {
-        font-size: 0.9rem;
-    }
-    
-    .btn {
-        font-size: 0.9rem;
-        padding: 0.5rem 1rem;
-    }
+/* Estilos para el layout centrado */
+.container-fluid {
+  max-width: 1400px;
+}
+
+.card {
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  border: none;
+}
+
+.card:hover {
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+}
+
+/* Mejoras para la barra de estado */
+.status-indicator {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.75rem;
+  background: rgba(0, 0, 0, 0.03);
+  border-radius: 0.5rem;
+  margin-top: 1rem;
+}
+
+/* Animaciones suaves */
+.card, .btn, .navbar {
+  transition: all 0.3s ease;
+}
+
+/* Mejoras para tooltips */
+.tooltip {
+  font-size: 0.875rem;
+}
+
+.tooltip-inner {
+  max-width: 300px;
+}
+
+/* Responsive navbar */
+@media (max-width: 992px) {
+  .navbar .d-flex {
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+  
+  .navbar .me-3 {
+    margin-right: 0 !important;
+    margin-bottom: 0.5rem;
+  }
 }

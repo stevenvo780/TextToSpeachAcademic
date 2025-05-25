@@ -7,6 +7,7 @@ import edge_tts
 import fitz  # PyMuPDF
 
 from flask import Flask, render_template, request, jsonify, send_file, abort
+from flask_cors import CORS
 from pydub import AudioSegment
 from threading import Thread
 from queue import Queue
@@ -14,6 +15,7 @@ from werkzeug.utils import secure_filename
 from gemini_split import split_paragraphs_with_gemini
 
 app = Flask(__name__)
+CORS(app)
 UPLOAD_FOLDER = 'audio_cache'
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 
